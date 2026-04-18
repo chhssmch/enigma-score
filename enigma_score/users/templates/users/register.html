@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <div class="logo">
+                    <a href="/">
+                        <img src="{% static 'images/logo_2.png' %}" alt="Логотип" class="logo-img">
+                    </a>
+                </div>
+                <div class="nav-center">
+                    <a href="/">Главная</a>
+                    <a href="#about">О нас</a>
+                    <a href="#howorks">Как это работает</a>
+                </div>
+                <div class="nav-right">
+                    <a href="{% url 'users:register' %}">Регистрация</a>
+                    <a href="{% url 'users:login' %}">Вход</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="form-card" >
+                <h2 style="text-align: center;">Регистрация</h2>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div style="color: red; margin-bottom: 20px;">
+                            {% for error in form.non_field_errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <br>
+                    <h3>Данные для входа</h3>
+                    {{ form.username }}
+                    {{ form.email }}
+                    {{ form.password1 }}
+                    {{ form.password2 }}
+                    
+                    <h3>Личные данные</h3>
+                    {{ form.first_name }}
+                    {{ form.last_name }}
+                    {{ form.phone }}
+                    {{ form.birth_date }}
+                    {{ form.monthly_income }}
+                    {{ form.employment_length }}
+                    {{ form.home_ownership }}
+                    
+                    <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+                </form>
+                
+                <p>Уже есть аккаунт? <a href="{% url 'users:login' %}"class="button-link">Войти</a></p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2026 Enigma Score</p>
+        </div>
+    </footer>
+</body>
+</html>

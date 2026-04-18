@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <div class="logo">
+                    <a href="/">
+                        <img src="{% static 'images/logo_2.png' %}" alt="Логотип" class="logo-img">
+                    </a>
+                </div>
+                <div class="nav-right">
+                    <a href="{% url 'credit_score:home' %}">Главная</a>
+                    <a href="{% url 'users:profile' %}">Личный кабинет</a>
+                    <form action="{% url 'users:logout' %}" method="post" style="display: inline; margin-left: 10px;">
+                        {% csrf_token %}
+                        <button type="submit" style="background: none; border: 1px solid #fff; border-radius: 20px; color: white; font-size: 14px; font-weight: 100; padding: 8px 16px; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='rgb(190, 190, 190)'; this.style.boxShadow='0 0 10px 10px rgb(154, 154, 154)'" onmouseout="this.style.background='none'; this.style.boxShadow='none'">
+                            Выйти
+                        </button>
+                    </form>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="account-container">
+                <h1>Добро пожаловать, {{ user.first_name }} {{ user.last_name }}!</h1>
+                <br>
+                
+                <div class="profile-card">
+                    <h3>Ваши данные</h3>
+                    <div class="profile-info">
+                        <div class="info-row">
+                            <span class="info-label">ФИО</span>
+                            <span class="info-value">{{ user.first_name }} {{ user.last_name }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Телефон</span>
+                            <span class="info-value">{{ profile.phone }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Email</span>
+                            <span class="info-value">{{ user.email }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Дата рождения</span>
+                            <span class="info-value">{{ profile.birth_date|date:"d.m.Y" }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Доход</span>
+                            <span class="info-value">{{ profile.monthly_income }} ₽</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Стаж</span>
+                            <span class="info-value">{{ profile.employment_length }} лет</span>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if credit_applications %}
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3 style="margin: 0;">История кредитных заявок</h3>
+                        <form method="post" action="{% url 'users:clear_history' %}" id="clear-history-form">
+                            {% csrf_token %}
+                            <button type="submit" class="clear-history-btn">Очистить историю</button>
+                        </form>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Сумма</th>
+                                <th>Цель</th>
+                                <th>Решение</th>
+                                <th>Вероятность</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in credit_applications %}
+                            <tr>
+                                <td>{{ app.created_at|date:"d.m.Y H:i" }}</td>
+                                <td>{{ app.loan_amnt }} ₽</td>
+                                <td>{{ app.get_loan_intent_display }}</td>
+                                <td>
+                                    {% if app.decision == 'APPROVE' %}
+                                        <span class="badge bg-success">Одобрено</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Отказано</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if app.probability_default %}
+                                        {{ app.probability_default|floatformat:3 }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="card">
+                    <h3>История кредитных заявок</h3>
+                    <p>У вас пока нет кредитных заявок.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+
+    <div id="clearHistoryModal" class="modal" style="display: none;">
+        <div class="modal-content modal-delete">
+            <button class="modal-close" onclick="closeClearModal()">&times;</button>
+            <div class="modal-icon">❕</div>
+            <h2>Подтверждение очистки</h2>
+            <p>Вы уверены, что хотите очистить всю историю кредитных заявок?</p>
+            <p style="color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-bottom: 20px;">
+                Это действие нельзя отменить. Все данные будут безвозвратно удалены.
+            </p>
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button type="button" class="modal-btn" onclick="cancelClearModal()" style="background: rgba(255, 255, 255, 0.1); color: white;">
+                    Отмена
+                </button>
+                <button type="button" class="modal-btn" onclick="confirmClearHistory()" style="background: #A661DB;">
+                    Очистить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p> 2026 Enigma Score</p>
+        </div>
+    </footer>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const clearForm = document.getElementById('clear-history-form');
+    const modal = document.getElementById('clearHistoryModal');
+    
+    if (clearForm) {
+        clearForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            modal.style.display = 'flex';
+        });
+    }
+});
+
+function closeClearModal() {
+    document.getElementById('clearHistoryModal').style.display = 'none';
+}
+
+function cancelClearModal() {
+    document.getElementById('clearHistoryModal').style.display = 'none';
+}
+
+function confirmClearHistory() {
+    const clearForm = document.getElementById('clear-history-form');
+    const modal = document.getElementById('clearHistoryModal');
+    const formData = new FormData(clearForm);
+    const submitButton = clearForm.querySelector('.clear-history-btn');
+    
+    modal.style.display = 'none';
+    
+    submitButton.disabled = true;
+    submitButton.textContent = 'Очистка...';
+    
+    fetch(clearForm.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const applicationRows = document.querySelectorAll('tbody tr');
+            
+            applicationRows.forEach((row, index) => {
+                setTimeout(() => {
+                    row.style.transition = 'opacity 0.3s ease';
+                    row.style.opacity = '0';
+                    setTimeout(() => {
+                        row.style.display = 'none';
+                    }, 300);
+                }, index * 50);
+            });
+            
+            setTimeout(() => {
+                const table = document.querySelector('.card table');
+                if (table) {
+                    table.style.transition = 'opacity 0.3s ease';
+                    table.style.opacity = '0';
+                    setTimeout(() => {
+                        table.style.display = 'none';
+                    }, 300);
+                }
+                
+                const card = document.querySelector('.card');
+                const existingMessage = card.querySelector('p');
+                if (!existingMessage || existingMessage.textContent.includes('no credit applications')) {
+                    const emptyMessage = document.createElement('p');
+                    emptyMessage.textContent = 'История кредитных заявок была очищена.';
+                    emptyMessage.style.color = 'rgba(255, 255, 255, 0.7)';
+                    card.appendChild(emptyMessage);
+                }
+            }, applicationRows.length * 50 + 300);
+           
+            const clearButton = document.querySelector('.clear-history-btn');
+            if (clearButton) {
+                clearButton.style.transition = 'opacity 0.3s ease';
+                clearButton.style.opacity = '0';
+                setTimeout(() => {
+                    clearButton.style.display = 'none';
+                }, 300);
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        submitButton.disabled = false;
+        submitButton.textContent = 'Очистить историю';
+    });
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById('clearHistoryModal');
+    if (event.target === modal) {
+        modal.style.display = 'none';
+    }
+}
+
+document.addEventListener('keydown', function(event) {
+    const modal = document.getElementById('clearHistoryModal');
+    if (event.key === 'Escape' && modal.style.display === 'flex') {
+        modal.style.display = 'none';
+    }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,223 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enigma Score</title>
+
+    <link rel="icon" type="image/png" href="{% static 'images/logo_2.png' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <div class="logo">
+                    <a href="/">
+                        <img src="{% static 'images/logo_2.png' %}" alt="Логотип" class="logo-img">
+                    </a>
+                </div>
+                <div class="nav-right">
+                    <a href="{% url 'credit_score:home' %}">Главная</a>
+                    <a href="{% url 'users:profile' %}">Личный кабинет</a>
+                    <form action="{% url 'users:logout' %}" method="post" style="display: inline; margin-left: 10px;">
+                        {% csrf_token %}
+                        <button type="submit" style="background: none; border: 1px solid #fff; border-radius: 20px; color: white; font-size: 14px; font-weight: 100; padding: 8px 16px; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='rgb(190, 190, 190)'; this.style.boxShadow='0 0 10px 10px rgb(154, 154, 154)'" onmouseout="this.style.background='none'; this.style.boxShadow='none'">
+                            Выйти
+                        </button>
+                    </form>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="welcome-section">
+                <h1>Здравствуйте, {% if user.first_name %}{{ user.first_name }}{% else %}{{ user.username }}{% endif %}!</h1>
+                <p>Проверьте шанс на получение кредита за пару секунд</p>
+            </div>
+
+            <div class="scoring-card">
+                <div class="scoring-header">
+                    <i class="fas fa-chart-line"></i>
+                    <h2>Кредитный скоринг</h2>
+                    <p>Заполните параметры кредита</p>
+                </div>
+                
+                <form method="post" action="{% url 'credit_score:check_credit' %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="loan_amount">Сумма кредита (₽)</label>
+                        <input type="number" id="loan_amount" name="loan_amount" class="form-control" placeholder="Введите сумму" min="1" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="loan_intent">Цель кредита</label>
+                        <select id="loan_intent" name="loan_intent" class="form-control" required>
+                            <option value="PERSONAL">Личные нужды</option>
+                            <option value="EDUCATION">Образование</option>
+                            <option value="MEDICAL">Медицинские расходы</option>
+                            <option value="VENTURE">Бизнес</option>
+                            <option value="HOMEIMPROVEMENT">Ремонт дома</option>
+                            <option value="DEBTCONSOLIDATION">Консолидация долгов</option>
+                        </select>
+                    </div>
+                    
+                                        
+                    <div class="form-group">
+                        <label for="loan_int_rate">Процентная ставка (%)</label>
+                        <input type="number" id="loan_int_rate" name="loan_int_rate" class="form-control" placeholder="Например: 11.0" step="0.1" min="0.1" max="30" value="11.0" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="cb_person_default_on_file">Были ли просрочки по кредитам?</label>
+                        <select id="cb_person_default_on_file" name="cb_person_default_on_file" class="form-control" required>
+                            <option value="N">Нет</option>
+                            <option value="Y">Да</option>
+                        </select>
+                    </div>
+                    
+                    <div class="info-badge">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Ваши личные данные уже загружены из анкеты.</span>
+                    </div>
+                    
+                    <button type="submit" class="btn-check">
+                        Проверить шанс
+                    </button>
+                </form>
+            </div>
+
+           <div id="resultModal" class="modal" style="display: {% if result %}flex{% else %}none{% endif %};">
+            <div class="modal-content {% if result.is_approved %}modal-approved{% else %}modal-rejected{% endif %}">
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+                <div class="modal-icon">{% if result.is_approved %}✓{% else %}✗{% endif %}</div>
+                <h2>{% if result.is_approved %}Одобрено{% else %}Отказано{% endif %}</h2>
+                <p>{% if result.is_approved %}У вас есть шанс на получение кредита{% else %}К сожалению, шанс на получение кредита низкий{% endif %}</p>
+                <div class="modal-details">
+                    <span>Сумма: {{ result.loan_amount }} ₽</span>
+                </div>
+            </div>
+           </div>
+
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2026 Enigma Score</p>
+        </div>
+    </footer>
+    <script>
+    function closeModal() {
+        document.getElementById('resultModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('resultModal');
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    }
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            const modal = document.getElementById('resultModal');
+            if (modal.style.display === 'flex') {
+                modal.style.display = 'none';
+            }
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form[action*="check_credit"]');
+        const loanAmountInput = document.getElementById('loan_amount');
+        const interestRateInput = document.getElementById('loan_int_rate');
+        
+        function createWarningElement(inputId) {
+            const warning = document.createElement('div');
+            warning.style.cssText = `
+                color: #f56565;
+                font-size: 12px;
+                margin-top: 5px;
+                display: none;
+                font-weight: 500;
+            `;
+            warning.id = inputId + '-warning';
+            return warning;
+        }
+        
+        if (loanAmountInput) {
+            const loanWarning = createWarningElement('loan_amount');
+            loanWarning.textContent = 'Сумма кредита должна быть положительной.';
+            loanAmountInput.parentNode.insertBefore(loanWarning, loanAmountInput.nextSibling);
+        }
+        
+        if (interestRateInput) {
+            const rateWarning = createWarningElement('loan_int_rate');
+            rateWarning.textContent = 'Процентная ставка должна быть положительной.';
+            interestRateInput.parentNode.insertBefore(rateWarning, interestRateInput.nextSibling);
+        }
+        
+        function showWarning(input, warningElement) {
+            input.style.borderColor = '#f56565';
+            input.style.boxShadow = '0 0 0 3px rgba(245, 101, 101, 0.1)';
+            warningElement.style.display = 'block';
+        }
+        
+        function hideWarning(input, warningElement) {
+            input.style.borderColor = '';
+            input.style.boxShadow = '';
+            warningElement.style.display = 'none';
+        }
+        
+        if (form && loanAmountInput && interestRateInput) {
+            form.addEventListener('submit', function(e) {
+                const loanAmount = parseFloat(loanAmountInput.value);
+                const interestRate = parseFloat(interestRateInput.value);
+                const loanWarning = document.getElementById('loan_amount-warning');
+                const rateWarning = document.getElementById('loan_int_rate-warning');
+                
+                if (isNaN(loanAmount) || loanAmount <= 0) {
+                    e.preventDefault();
+                    showWarning(loanAmountInput, loanWarning);
+                    loanAmountInput.focus();
+                    return false;
+                }
+                
+                if (isNaN(interestRate) || interestRate <= 0) {
+                    e.preventDefault();
+                    showWarning(interestRateInput, rateWarning);
+                    interestRateInput.focus();
+                    return false;
+                }
+            });
+            
+            loanAmountInput.addEventListener('input', function() {
+                const value = parseFloat(this.value);
+                const warning = document.getElementById('loan_amount-warning');
+                
+                if (this.value && (isNaN(value) || value <= 0)) {
+                    showWarning(this, warning);
+                } else {
+                    hideWarning(this, warning);
+                }
+            });
+            
+            interestRateInput.addEventListener('input', function() {
+                const value = parseFloat(this.value);
+                const warning = document.getElementById('loan_int_rate-warning');
+                
+                if (this.value && (isNaN(value) || value <= 0)) {
+                    showWarning(this, warning);
+                } else {
+                    hideWarning(this, warning);
+                }
+            });
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+# Виртуальные окружения
+venv/
+env/
+.venv/
+
+# Кэш Python
+__pycache__/
+*.pyc
+
+# Секретные конфигурации (ЗДЕСЬ ЛЕЖАТ ПАРОЛИ)
+.env
+.env.local
+
+# Данные Docker-контейнеров
+pg_data/
+postgres_data/
+.docker-volumes/
+
+# Пользовательские загрузки
+media/
+/media/
+
+# Временные файлы операционных систем
+.DS_Store
+Thumbs.db
