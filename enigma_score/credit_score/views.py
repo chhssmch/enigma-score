@@ -2,18 +2,31 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from django.contrib import messages
+from django.contrib.auth.models import User
 from .models import CreditApplication
 from .ml_service import ml_service  
 
 def home_page(request):
+    # Calculate statistics
+    total_applications = CreditApplication.objects.count()
+    approved_applications = CreditApplication.objects.filter(decision='APPROVE').count()
+    total_users = User.objects.count()
+    
     if request.user.is_authenticated:
         result = request.session.pop('credit_result', None)
         return render(request, 'credit_score/home_auth.html', {
             'user': request.user,
             'result': result,
+            'total_applications': total_applications,
+            'approved_applications': approved_applications,
+            'total_users': total_users,
         })
     else:
-        return render(request, 'credit_score/home.html')
+        return render(request, 'credit_score/home.html', {
+            'total_applications': total_applications,
+            'approved_applications': approved_applications,
+            'total_users': total_users,
+        })
     
 @login_required
 def check_credit(request):

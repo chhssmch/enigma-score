@@ -65,30 +65,30 @@
         </section>
         <section id="howorks" class="steps-section">
             <div class="container">
-                <h2 class="section-title">Как это работает</h2>
+                <h2 class="section-title">Текущая статистика</h2>
                 <div class="steps-grid">
                     <div class="step-card">
                         <div class="step-circle1">
                             <img src="{% static 'images/icon-1.png' %}" alt="Иконка регистрации">
                         </div>
-                        <h3>Заполните анкету</h3>
-                        <p>Основная информация о вас и ваших доходах</p>
+                        <h3>Зарегистрированных пользователей: {{ total_users }}</h3>
+                        <p>Присоединяйся к удобному сервису!</p>
                     </div>
                     
                     <div class="step-card">
                         <div class="step-circle2">
                             <img src="{% static 'images/icon-2.png' %}" alt="Иконка добавления документов">
                         </div>
-                        <h3>Загрузите документы</h3>
-                        <p>Справки, выписки - мы сами извлечем данные</p>
+                        <h3>Количество поданных заявок: {{ total_applications }}</h3>
+                        <p>Попробуй свою удачу!</p>
                     </div>
                     
                     <div class="step-card">
                         <div class="step-circle1">
                             <img src="{% static 'images/icon-3.png' %}" alt="Иконка получения результата">
                         </div>
-                        <h3>Получите ответ</h3>
-                        <p>Сможете ли вы получить кредит?</p>
+                        <h3>Количество одобренных заявок: {{ approved_applications }}</h3>
+                        <p>Сможешь ли ты получить кредит?</p>
                     </div>
                 </div>
             </div>
