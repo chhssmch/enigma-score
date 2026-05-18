@@ -7,7 +7,6 @@ from .models import CreditApplication
 from .ml_service import ml_service  
 
 def home_page(request):
-    # Calculate statistics
     total_applications = CreditApplication.objects.count()
     approved_applications = CreditApplication.objects.filter(decision='APPROVE').count()
     total_users = User.objects.count()
