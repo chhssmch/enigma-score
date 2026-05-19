@@ -1,0 +1,6 @@
+[tools.pytest.ini_options]
+minversion = "6.0"
+testpaths = ["credit_score/tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = ["-vv"]

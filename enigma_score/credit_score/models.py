@@ -74,6 +74,7 @@ class CreditApplication(models.Model):
     )
     
     created_at = models.DateTimeField(auto_now_add=True)
+    is_hidden = models.BooleanField(default=False)
     
     class Meta:
         verbose_name = 'Кредитная заявка'

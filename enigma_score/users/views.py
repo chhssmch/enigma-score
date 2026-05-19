@@ -40,7 +40,7 @@ def profile_view(request):
         form = ProfileForm(instance=user_profile)
     
     from credit_score.models import CreditApplication
-    credit_applications = CreditApplication.objects.filter(user=request.user).order_by('-created_at')
+    credit_applications = CreditApplication.objects.filter(user=request.user, is_hidden=False).order_by('-created_at')
 
     context = {
         'profile': user_profile,
@@ -54,24 +54,24 @@ def clear_history(request):
     if request.method == 'POST':
         try:
             from credit_score.models import CreditApplication
-            deleted_count = CreditApplication.objects.filter(user=request.user).delete()[0]
+            updated_count = CreditApplication.objects.filter(user=request.user).update(is_hidden=True)
             
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': True,
-                    'message': f'Deleted {deleted_count} credit applications from database.'
+                    'message': f'Hidden {updated_count} credit applications from history.'
                 })
             else:
-                messages.success(request, f'Deleted {deleted_count} credit applications from database.')
+                messages.success(request, f'Hidden {updated_count} credit applications from history.')
                 return redirect('users:profile')
         except Exception as e:
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': False,
-                    'message': f'Error deleting applications: {str(e)}'
+                    'message': f'Error hiding applications: {str(e)}'
                 })
             else:
-                messages.error(request, f'Error deleting applications: {str(e)}')
+                messages.error(request, f'Error hiding applications: {str(e)}')
                 return redirect('users:profile')
     
     return redirect('users:profile')
